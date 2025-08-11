@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { whop } from './api.js'; // make sure ./api.js exports your Whop client
+import { whop } from './api.js';
 
 // Environment variable check
 if (!process.env.WHOP_COMPANY_TOKEN) {
