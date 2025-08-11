@@ -19,6 +19,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 204
 }));
+
 app.options('*', cors());
 
 // ===== Body parsing =====
