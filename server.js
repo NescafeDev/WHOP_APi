@@ -16,19 +16,76 @@ console.log('✅ Environment variables loaded successfully');
 console.log('🔑 WHOP_COMPANY_TOKEN:', process.env.WHOP_COMPANY_TOKEN ? 'Set' : 'Missing');
 
 const app = express();
-app.use(cors({
+
+// CORS configuration
+const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    // Allow all origins
-    return callback(null, true);
+    
+    // Allow specific origins
+    const allowedOrigins = [
+      'https://go.kenangraceuniversity.com',
+      'https://whop-a-pi.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:8081'
+    ];
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // For development, you can allow all origins
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    return callback(new Error('Not allowed by CORS'));
   },
-  credentials: false
-}));
+  credentials: false,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
+
+// Additional middleware to ensure CORS headers are always present
+app.use((req, res, next) => {
+  // Log incoming requests for debugging
+  console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'No origin'}`);
+  
+  res.header('Access-Control-Allow-Origin', 'https://go.kenangraceuniversity.com');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Max-Age', '86400');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    console.log('🔄 Handling OPTIONS preflight request');
+    res.status(200).end();
+    return;
+  }
+  
+  next();
+});
+
 app.use(express.json());
 
 app.get('/', (req, res) => {
   res.send('Hello World');
+});
+
+// Test route to verify CORS
+app.get('/api/test-cors', (req, res) => {
+  res.json({ 
+    message: 'CORS test successful',
+    timestamp: new Date().toISOString(),
+    origin: req.headers.origin
+  });
 });
 
 app.post('/api/lookup-user-from-receipt', async (req, res) => {
