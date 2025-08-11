@@ -14,7 +14,15 @@ console.log('✅ Environment variables loaded successfully');
 console.log('🔑 WHOP_COMPANY_TOKEN:', process.env.WHOP_COMPANY_TOKEN ? 'Set' : 'Missing');
 
 const app = express();
-app.use(cors({ origin: [/localhost:\d+$/, /\.clickfunnels\.com$/], credentials: false }));
+app.use(cors({ 
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    // Allow all origins
+    return callback(null, true);
+  },
+  credentials: false 
+}));
 app.use(express.json());
 
 const ChargeSchema = z.object({
