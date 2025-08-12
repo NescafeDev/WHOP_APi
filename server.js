@@ -103,6 +103,7 @@ app.post('/api/lookup-user-from-receipt', async (req, res) => {
 app.post('/api/charge', async (req, res) => {
   try {
     const { whopUserId, amount, currency, memo } = req.body;
+    console.log('Req Data:', req.body);
     if (!whopUserId || !amount || !currency) {
       return res.status(400).json({ error: "Missing required fields" });
     }
