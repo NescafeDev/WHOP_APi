@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 3px; white-space: pre-wrap; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 API Testing Tool</h1>
+    
+    <div class="test-section">
+        <h3>Test Server Health</h3>
+        <button onclick="testHealth()">Test Health Check</button>
+        <div id="healthResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Lookup User from Receipt</h3>
+        <input type="text" id="receiptId" placeholder="Enter receipt ID" value="test_receipt_123">
+        <button onclick="testLookupUser()">Test Lookup</button>
+        <div id="lookupResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8081';
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('healthResult');
+            resultDiv.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/`);
+                const data = await response.text();
+                resultDiv.textContent = `✅ Success: ${data}`;
+            } catch (error) {
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testLookupUser() {
+            const resultDiv = document.getElementById('lookupResult');
+            const receiptId = document.getElementById('receiptId').value;
+            
+            resultDiv.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/lookup-user-from-receipt`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        receiptId: receiptId
+                    })
+                });
+
+                const data = await response.text();
+                resultDiv.textContent = `📡 Status: ${response.status}\n📄 Response: ${data}`;
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

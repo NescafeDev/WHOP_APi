@@ -12,10 +12,13 @@
     "build": "echo 'Build completed'"
   },
   "dependencies": {
+    "@whop-apps/sdk": "^0.0.1-canary.117",
     "@whop/api": "^0.0.42",
+    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^4.18.2",
+    "node-fetch": "^3.3.2",
     "zod": "^4.0.17"
   }
 }

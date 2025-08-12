@@ -1,7 +1,9 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import bodyParser from 'body-parser';
 import { whop } from './api.js';
+import * as WhopAPI from "@whop-apps/sdk";
 
 // Environment variable check
 if (!process.env.WHOP_COMPANY_TOKEN) {
@@ -23,7 +25,18 @@ app.use(cors({
 app.options('*', cors());
 
 // ===== Body parsing =====
-app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Debug middleware to see what's being received
+app.use((req, res, next) => {
+  console.log('📥 Request method:', req.method);
+  console.log('📥 Request URL:', req.url);
+  console.log('📥 Content-Type:', req.headers['content-type']);
+  console.log('📥 Request body:', req.body);
+  console.log('📥 Request body type:', typeof req.body);
+  next();
+});
 
 // Test route
 app.get('/', (req, res) => {
@@ -44,18 +57,26 @@ app.post('/api/lookup-user-from-receipt', async (req, res) => {
     const { receiptId } = req.body;
     if (!receiptId) return res.status(400).json({ error: "Missing receiptId" });
 
-    const payment = await whop.payments.retrievePayment({
-      paymentId: receiptId,
-      expand: ["user"],
+    // 1) GET /api/v2/payments/{id}
+    const payR = await fetch(`https://api.whop.com/api/v2/payments/${receiptId}`, {
+      headers: { Authorization: `Bearer ${process.env.WHOP_API_KEY}` }
     });
+    if (!payR.ok) throw new Error(`Failed to retrieve payment: ${payR.status}`);
+    const payment = await payR.json();
 
     const userId = payment?.user?.id || payment?.user;
-    const email = payment?.user?.email;
     if (!userId) return res.status(404).json({ error: "User not found on payment" });
 
-    res.status(200).json({ userId, email });
+    // 2) GET /api/v5/company/users/{id} for email/details
+    const userR = await fetch(`https://api.whop.com/api/v5/company/users/${userId}`, {
+      headers: { Authorization: `Bearer ${process.env.WHOP_API_KEY}` }
+    });
+    if (!userR.ok) throw new Error(`Failed to retrieve user: ${userR.status}`);
+    const user = await userR.json();
+
+    return res.status(200).json({ userId, email: user.email || null });
   } catch (e) {
-    res.status(500).json({ error: e.message || 'Server error' });
+    return res.status(500).json({ error: e.message });
   }
 });
 
@@ -69,7 +90,7 @@ app.post('/api/charge', async (req, res) => {
 
     const result = await whop.payments.chargeUser({
       userId: whopUserId,
-      amount,
+      amount: parseFloat(amount),
       currency,
       metadata: memo ? { memo } : undefined,
     });
@@ -80,7 +101,7 @@ app.post('/api/charge', async (req, res) => {
 
     res.status(200).json(result.inAppPurchase);
   } catch (e) {
-    res.status(500).json({ error: e.message || 'Server error' });
+    res.status(500).json({ err: e.message || 'Server error' });
   }
 });
 
