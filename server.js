@@ -89,7 +89,11 @@ app.post('/api/lookup-user-from-receipt', async (req, res) => {
       }
     })
 
-    console.log(result);
+    const member = result.receipts.nodes[0].member;
+
+    const userId = member.user.id;
+
+    res.status(200).json({ userId });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
