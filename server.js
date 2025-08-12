@@ -79,10 +79,11 @@ app.post('/api/lookup-user-from-receipt', async (req, res) => {
     const { receiptId } = req.body;
 
     const result = await whop.payments.listReceiptsForCompany({
+      companyId: "biz_IXkWSJQ9Qfs4hX",
       first: 1,
       filter: {
         currencies: "usd",
-        // planId: ["plan_1Mh6CixKa66Pi"],
+        planIds: ["plan_1Mh6CixKa66Pi"],
         query: receiptId,
         direction: "asc"
       }
