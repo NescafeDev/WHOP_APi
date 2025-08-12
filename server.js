@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { whop } from './api.js';
-import * as WhopAPI from "@whop-apps/sdk";
+
 
 // Environment variable check
 if (!process.env.WHOP_COMPANY_TOKEN) {
@@ -54,27 +54,41 @@ app.get('/api/test-cors', (req, res) => {
 // Lookup user from receipt
 app.post('/api/lookup-user-from-receipt', async (req, res) => {
   try {
+    // const { receiptId } = req.body;
+    // if (!receiptId) return res.status(400).json({ error: "Missing receiptId" });
+
+    // // 1) GET /api/v2/payments/{id}
+    // const payR = await fetch(`https://api.whop.com/api/v2/payments/${receiptId}`, {
+    //   headers: { Authorization: `Bearer ${process.env.WHOP_API_KEY}` }
+    // });
+    // if (!payR.ok) throw new Error(`Failed to retrieve payment: ${payR.status}`);
+    // const payment = await payR.json();
+
+    // const userId = payment?.user?.id || payment?.user;
+    // if (!userId) return res.status(404).json({ error: "User not found on payment" });
+
+    // // 2) GET /api/v5/company/users/{id} for email/details
+    // const userR = await fetch(`https://api.whop.com/api/v5/company/users/${userId}`, {
+    //   headers: { Authorization: `Bearer ${process.env.WHOP_API_KEY}` }
+    // });
+    // if (!userR.ok) throw new Error(`Failed to retrieve user: ${userR.status}`);
+    // const user = await userR.json();
+
+    // return res.status(200).json({ userId, email: user.email || null });
+
     const { receiptId } = req.body;
-    if (!receiptId) return res.status(400).json({ error: "Missing receiptId" });
 
-    // 1) GET /api/v2/payments/{id}
-    const payR = await fetch(`https://api.whop.com/api/v2/payments/${receiptId}`, {
-      headers: { Authorization: `Bearer ${process.env.WHOP_API_KEY}` }
-    });
-    if (!payR.ok) throw new Error(`Failed to retrieve payment: ${payR.status}`);
-    const payment = await payR.json();
+    const result = await whop.payments.listReceiptsForCompany({
+      first: 1,
+      filter: {
+        currencies: "usd",
+        // planId: ["plan_1Mh6CixKa66Pi"],
+        query: receiptId,
+        direction: "asc"
+      }
+    })
 
-    const userId = payment?.user?.id || payment?.user;
-    if (!userId) return res.status(404).json({ error: "User not found on payment" });
-
-    // 2) GET /api/v5/company/users/{id} for email/details
-    const userR = await fetch(`https://api.whop.com/api/v5/company/users/${userId}`, {
-      headers: { Authorization: `Bearer ${process.env.WHOP_API_KEY}` }
-    });
-    if (!userR.ok) throw new Error(`Failed to retrieve user: ${userR.status}`);
-    const user = await userR.json();
-
-    return res.status(200).json({ userId, email: user.email || null });
+    console.log(result);
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
