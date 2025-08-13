@@ -82,12 +82,12 @@ app.post('/api/lookup-user-from-receipt', async (req, res) => {
       companyId: "biz_Lt8j3jKB0MLRx7",
       first: 1,
       filter: {
-        currencies: "usd",
-        planIds: ["plan_JIQ4KbN5OC1Hp"],
+        planIds: ["plan_bpoulyVgE7nTc"],
         query: receiptId,
-        direction: "asc"
       }
     })
+
+    console.log("result:", result);
 
     const member = result.receipts.nodes[0].member;
 
@@ -95,6 +95,7 @@ app.post('/api/lookup-user-from-receipt', async (req, res) => {
 
     res.status(200).json({ userId });
   } catch (e) {
+    console.log(e);
     return res.status(500).json({ error: e.message });
   }
 });
