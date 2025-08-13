@@ -83,7 +83,7 @@ app.post('/api/lookup-user-from-receipt', async (req, res) => {
       first: 1,
       filter: {
         currencies: "usd",
-        planIds: ["plan_1Mh6CixKa66Pi"],
+        planIds: ["plan_JIQ4KbN5OC1Hp"],
         query: receiptId,
         direction: "asc"
       }
